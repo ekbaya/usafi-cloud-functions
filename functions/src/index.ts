@@ -1,9 +1,16 @@
 import * as functions from 'firebase-functions';
-
-// Start writing Firebase Functions
-// https://firebase.google.com/docs/functions/typescript
-
-export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
-});
+import * as admin from 'firebase-admin';
+const glob = require("glob");
+const camelCase = require("camelcase");
+const files = glob.sync('./**/*.f.js', { cwd: __dirname, ignore: './node_modules/**'});
+admin.initializeApp(functions.config().firebase);
+for(let f=0,fl=files.length; f<fl; f++){
+  const file = files[f];
+  let functionName = camelCase(file.slice(0, -5).split('/').join('_')); // Strip off '.f.js'
+  if(functionName.includes('https')) {
+    functionName = functionName.replace('https', '').toLowerCase();
+  }
+  if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === functionName) {
+    exports[functionName] = require(file);
+  }
+}
