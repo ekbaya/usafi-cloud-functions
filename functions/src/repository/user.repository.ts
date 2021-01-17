@@ -29,3 +29,21 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
     }
     return null;
 }
+
+/**
+ * Gets All Users In The Database
+ */
+export const getUsers = async () :Promise<User[]> => {
+    const users:User[] = [];
+    const snapshot = await firestoreDatabase.collection('users').get();
+    snapshot.forEach(userSnapshot => {
+        users.push(<User> userSnapshot.data());
+    });
+    return users;
+}
+
+export const updateUser = async (user: User) => {
+    if(user.id) {
+        await firestoreDatabase.collection('users').doc(user.id).update(user);
+    }
+}
